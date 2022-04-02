@@ -1,6 +1,10 @@
 from enum import Enum, auto
 from flask import Flask, render_template
 import cv2
+from cv import find_all_mushrooms, find_flowering_mushrooms
+import time
+#from picamera.array import piRGBArray
+#from picamera import PiCamera
 
 class state(Enum):
     INIT = auto()
@@ -21,6 +25,13 @@ current_timestep = 0
 
 lcd_display = ""
 
+start_time = 0
+
+#camera = PiCamera()
+#camera.resolution = (640, 480)
+#camera.framerate = 1/60
+#rawCapture = PiRGBArray(camera)
+
 @app.route('/1')
 def index():
     return render_template(
@@ -34,16 +45,18 @@ def index():
 def image_to_string(img):
     new_image_path = image_path + str(current_timestep) + '.png'
     cv2.imwrite(new_image_path, img)
-    current_image = format("<img src='{}' class='mushroom_image' height='10px' width='10px'>", new_image_path)
+    current_image = new_image_path
 
 def update_lcd_display():
     lcd_display = format("humidity: {}%\nTemperature: {}C\nLight Intensity: {}cd", humidity, temperature, light_intensity)
 
 def main():
+    time.sleep(0.1)
     state = state.INIT
     while (True):
         if state == state.INIT:
-            pass
+            start_time = time.time()
+            cv2.im
 
         elif state == state.BUDDING:
             pass
@@ -53,7 +66,19 @@ def main():
 
         elif state == state.HARVEST:
             pass
-    update_lcd_display()
+
+        if (time.time() - start_time > 60):
+            #camera.capture(rawCapture, format="bgr")
+            #image = rawCapture.array
+            start_time = time.time()
+            pass
+
+        #if find_all_mushrooms(image):
+            #state = State.FLOWERING
+        #elif find_flowering_mushrooms(image):
+            #state = State.HARVEST
+        #image_to_string(image)
+        update_lcd_display()
 
 
 

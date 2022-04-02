@@ -1,0 +1,45 @@
+.flex-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.flexitem {
+    color: lightgreen;
+    background: black;
+    height: 250px;
+    width: 250px;
+    border-radius: 40px;
+    outline: 4px solid lightgreen;
+    margin: 10px 10px 10px 10px;
+}
+
+.img-icon {
+    filter: hue-rotate(180deg) invert(100%);
+    color: green;
+    margin: 20px 10px 10px 10px;
+}
+
+.mushroom_container {
+    color: lightgreen;
+    background: black;
+    height: 780px;
+    width: 780px;
+    border-radius: 40px;
+    outline: 4px solid lightgreen;
+    margin: auto;
+}
+
+.mushroom_image {
+    height: 780px;
+    width: 780px;
+    border-radius: 40px;
+}
+
+h2 {
+    padding-left: 10px;
+}
+
+body {
+    background-color: black;
+}

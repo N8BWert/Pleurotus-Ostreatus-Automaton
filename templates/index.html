@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>W3.CSS Template</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="static/style.css">
+<style>
+html,body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
+</style>
+</head>
+<body>
+    <div class="flex-container">
+        <div class="flexitem">
+            <img src="static/humidity_icon.jpg" width="60px" height="60px" class="img-icon">
+            <p><h2>Humidity: {{ humidity }}%</h2></p>
+        </div>
+        <div class="flexitem">
+            <img src="static/thermometer_icon.png" width="60px" height="60px" class="img-icon">
+            <p><h2>Temperature: {{ temperature }}C</h2></p>
+        </div>
+        <div class="flexitem">
+            <img src="static/light_intensity_icon.webp" width="60px" height="60px" class="img-icon">
+            <p><h2>Light Intensity: {{ light_intensity }}cd</h2></p>
+        </div>
+    </div>
+        <div class="mushroom_container">
+            <img src={{ current_image }} class="mushroom_image">
+        </div>
+</body>
+</html>

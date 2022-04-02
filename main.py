@@ -1,3 +1,5 @@
+import RPi.GPIO as GPIO
+from time import sleep
 from enum import Enum, auto
 from flask import Flask, render_template
 import cv2
@@ -79,7 +81,31 @@ def main():
             #state = State.HARVEST
         #image_to_string(image)
         update_lcd_display()
+        GPIO.setmode(GPIO.BOARD)
 
+        ControlPin = [7, 11, 13, 15]
+
+        for pin in ControlPin:
+            GPIO.setup(pin, GPIO.OUT)
+            GPIO.output(pin, 0)
+
+        seq = [ [1,0,0,0],
+                [1,1,0,0],
+                [0,1,0,0],
+                [0,1,1,0],
+                [0,1,1,0],
+                [0,0,1,0],
+                [0,0,1,1],
+                [0,0,0,1],
+                [1,0,0,1] ]
+
+        for i in range(512):
+            for halfstep in range(8):
+                for pin in range(4):
+                    GPIO.output(ControlPin[pin], seq[halfstep][pin])
+                sleep(0.001)
+
+        GPIO.cleanup()
 
 
 if __name__ == '__main__':

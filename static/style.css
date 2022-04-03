@@ -23,16 +23,16 @@
 .mushroom_container {
     color: lightgreen;
     background: black;
-    height: 780px;
-    width: 780px;
+    height: 480px;
+    width: 480px;
     border-radius: 40px;
     outline: 4px solid lightgreen;
     margin: auto;
 }
 
 .mushroom_image {
-    height: 780px;
-    width: 780px;
+    height: 480px;
+    width: 480px;
     border-radius: 40px;
 }
 

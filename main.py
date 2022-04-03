@@ -8,6 +8,7 @@ import time
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 import signal
+import threading
 
 class State(Enum):
     INIT = auto()
@@ -33,11 +34,11 @@ time_left_before_harvest = 60
 
 growth_coverage = 0
 
-print('precamera')
-
 camera = PiCamera()
 camera.resolution = (640, 480)
 rawCapture = PiRGBArray(camera, size=(640, 480))
+
+state = State.INIT
 
 app = Flask(__name__)
 
@@ -46,6 +47,7 @@ def handler(signum, frame):
     exit(1)
 
 def image_to_string(img):
+    global current_timestep
     new_image_path = image_path + str(current_timestep) + '.png'
     cv2.imwrite(new_image_path, img)
     current_timestep += 1
@@ -53,95 +55,14 @@ def image_to_string(img):
 
 def update_lcd_display():
     lcd_display = "humidity: {}%\nTemperature: {}C\nGrowth Coverage: {}cd".format(humidity, temperature, growth_coverage)
-
-def main():
-    time_left_before_harvest -= (time.time() - start_time)
-    start_time = time.time()
-    time.sleep(0.1)
-    state = State.INIT
-    global current_image
-    global growth_coverage
-    while (True):
-        if state == State.INIT:
-            start_time = time.time()
-            camera.capture(rawCapture, format="bgr")
-            image = rawCapture.array
-            current_image = image_to_string(image)
-            update_lcd_display()
-            growth_coverage = find_pink(image)
-            state = State.BUDDING
-
-        elif state == State.BUDDING:
-            if (time.time() - start_time > 60):
-                camera.capture(rawCapture, format="bgr")
-                image = rawCapture.array
-                start_time = time.time()
-                current_image = image_to_string(image)
-                update_lcd_display()
-                growth_coverage = find_pink(image)
-
-                if find_flowering_mushrooms(image):
-                    state = State.HARVEST
-                elif find_flowering_mushrooms(image):
-                    state = State.FLOWERING
-
-        elif state == State.FLOWERING:
-            if (time.time() - start_time > 60):
-                camera.capture(rawCapture, format="bgr")
-                image = rawCapture.array
-                start_time = time.time()
-                current_image = image_to_string(image)
-                update_lcd_display()
-                growth_coverage = find_pink(image)
-
-                if find_flowering_mushrooms(image):
-                    state = State.HARVEST
-
-        elif state == State.HARVEST:
-            GPIO.setmode(GPIO.BOARD)
-
-            ControlPin = [7, 11, 13, 15]
-
-            for pin in ControlPin:
-                GPIO.setup(pin, GPIO.OUT)
-                GPIO.output(pin, 0)
-
-            seq = [ [1,0,0,0],
-                    [1,1,0,0],
-                    [0,1,0,0],
-                    [0,1,1,0],
-                    [0,1,1,0],
-                    [0,0,1,0],
-                    [0,0,1,1],
-                    [0,0,0,1],
-                    [1,0,0,1] ]
-
-            for i in range(512):
-                for halfstep in range(8):
-                    for pin in range(4):
-                        GPIO.output(ControlPin[pin], seq[halfstep][pin])
-                    sleep(0.001)
-
-            GPIO.cleanup()
-
-            state = State.FINALIZING
-
-        elif state == State.FINALIZING:
-            break
-
-    if time_left_before_harvest < 0:
-        state = State.HARVEST
-        time_left_before_harvest = 10000
-
-
-if __name__ == '__main__':
-    app.run(host='100.70.10.68', threaded=True)
-    print('main')
-    signal.signal(signal.SIGINT, handler)
-    main()
-    camera.close()
-    exit(1)
-
+    
+def checker_thread():
+    idx = 0
+    while True:
+        main()
+        time.sleep(60)
+        idx += 1
+    
 @app.route('/1')
 def index():
     return render_template(
@@ -151,3 +72,90 @@ def index():
         light_intensity=light_intensity,
         growth_coverage=growth_coverage
     )
+    
+def main():
+    time.sleep(0.1)
+    global state
+    global current_image
+    global growth_coverage
+    global camera
+    global rawCapture
+    if state == State.INIT:
+        start_time = time.time()
+        camera.capture(rawCapture, format="bgr")
+        image = rawCapture.array
+        current_image = image_to_string(image)
+        update_lcd_display()
+        growth_coverage = find_pink(image)
+        state = State.BUDDING
+
+    elif state == State.BUDDING:
+        camera.capture(rawCapture, format="bgr")
+        image = rawCapture.array
+        start_time = time.time()
+        current_image = image_to_string(image)
+        #GPIO.setmode(GPIO.BOARD)
+        #humidity, temperature = Adafruit_DHT.read_retry(11, 8, 1, 0)
+        #GPIO.cleanup()
+        update_lcd_display()
+        growth_coverage = find_pink(image)
+
+        if find_flowering_mushrooms(image):
+            state = State.HARVEST
+        elif find_flowering_mushrooms(image):
+            state = State.FLOWERING
+
+    elif state == State.FLOWERING:
+        camera.capture(rawCapture, format="bgr")
+        image = rawCapture.array
+        start_time = time.time()
+        current_image = image_to_string(image)
+        #GPIO.setmode(GPIO.BOARD)
+        #humidity, temperature = Adafruit_DHT.read_retry(11, 8, 1, 0)
+        #GPIO.cleanup()
+        update_lcd_display()
+        growth_coverage = find_pink(image)
+
+        if find_flowering_mushrooms(image):
+            state = State.HARVEST
+
+    elif state == State.HARVEST:
+        GPIO.setmode(GPIO.BOARD)
+
+        ControlPin = [7, 11, 13, 15]
+
+        for pin in ControlPin:
+            GPIO.setup(pin, GPIO.OUT)
+            GPIO.output(pin, 0)
+
+        seq = [ [1,0,0,0],
+                [1,1,0,0],
+                [0,1,0,0],
+                [0,1,1,0],
+                [0,1,1,0],
+                [0,0,1,0],
+                [0,0,1,1],
+                [0,0,0,1],
+                [1,0,0,1] ]
+
+        for i in range(512):
+            for halfstep in range(8):
+                for pin in range(4):
+                    GPIO.output(ControlPin[pin], seq[halfstep][pin])
+                sleep(0.001)
+
+        GPIO.cleanup()
+
+        state = State.FINALIZING
+
+    elif state == State.FINALIZING:
+        pass
+
+
+if __name__ == '__main__':
+    app.run(host='100.70.10.68', threaded=True)
+    print('main')
+    signal.signal(signal.SIGINT, handler)
+    main()
+    camera.close()
+    exit(1)

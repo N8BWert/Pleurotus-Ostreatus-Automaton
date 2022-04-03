@@ -86,6 +86,8 @@ def main():
     global camera
     global rawCapture
     global idx
+    global humidity
+    global temperature
     if idx > 5:
         state = State.HARVEST
     if state == State.INIT:

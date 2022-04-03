@@ -95,7 +95,7 @@ def main():
         image = rawCapture.array
         image_to_string(image)
         GPIO.setmode(GPIO.BOARD)
-        humidity, temperature = Adafruit_DHT.read_retry(11, 8, 10)
+        humidity, temperature = Adafruit_DHT.read_retry(11, 16, 10)
         print('humidity: ', humidity, ', temperature: ', temperature)
         update_lcd_display()
         growth_coverage = find_pink(image)
@@ -106,8 +106,8 @@ def main():
         camera.capture(rawCapture, format="bgr")
         image = rawCapture.array
         start_time = time.time()
-        image_to_string(image)
-        humidity, temperature = Adafruit_DHT.read_retry(11, 8, 10)
+        current_image = image_to_string(image)
+        humidity, temperature = Adafruit_DHT.read_retry(11, 16, 10)
         print('humidity2: ', humidity, ', temperature: ', temperature)
         update_lcd_display()
         growth_coverage = find_pink(image)
@@ -122,8 +122,8 @@ def main():
         camera.capture(rawCapture, format="bgr")
         image = rawCapture.array
         start_time = time.time()
-        image_to_string(image)
-        humidity, temperature = Adafruit_DHT.read_retry(11, 8, 10)
+        current_image = image_to_string(image)
+        humidity, temperature = Adafruit_DHT.read_retry(11, 16, 10)
         print('humidity3: ', humidity, ', temperature: ', temperature)
         GPIO.cleanup()
         update_lcd_display()

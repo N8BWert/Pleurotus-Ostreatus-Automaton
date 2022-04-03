@@ -1,12 +1,14 @@
 import RPi.GPIO as GPIO
 from time import sleep
 from enum import Enum, auto
-#from flask import Flask, render_template
+from flask import Flask, render_template, Response
 import cv2
 from cv import find_all_mushrooms, find_flowering_mushrooms
 import time
 from picamera.array import PiRGBArray
 from picamera import PiCamera
+import signal
+from camera_pi import Camera
 
 class State(Enum):
     INIT = auto()
@@ -15,7 +17,7 @@ class State(Enum):
     HARVEST = auto()
 
 
-#app = Flask(__name__)
+app = Flask(__name__)
 
 humidity = 65
 temperature = 10
@@ -33,6 +35,10 @@ camera = PiCamera()
 camera.resolution = (640, 480)
 rawCapture = PiRGBArray(camera, size=(640, 480))
 
+def handler(signum, frame):
+    camera.close()
+    exit(1)
+
 @app.route('/1')
 def index():
     return render_template(
@@ -44,13 +50,17 @@ def index():
     )
 
 def gen(camera):
+    """Video streaming generator function."""
     while True:
         frame = camera.get_frame()
-        yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
         
-@app.route('/video_1')
+@app.route('/video_feed')
 def video_feed():
-    return Response(gen(camera()), mimetype='multipart/x-mixed-replace; boundary=frame')
+    """Video streaming route. Put this in the src attribute of an img tag."""
+    return Response(gen(Camera()),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
 
 def image_to_string(img):
     new_image_path = image_path + str(current_timestep) + '.png'
@@ -83,10 +93,10 @@ def main():
             image_to_string(image)
             update_lcd_display()
 
-            if find_all_mushrooms(image):
-                state = State.FLOWERING
-            elif find_flowering_mushrooms(image):
+            if find_flowering_mushrooms(image):
                 state = State.HARVEST
+            elif find_flowering_mushrooms(image):
+                state = State.FLOWERING
                 
         GPIO.setmode(GPIO.BOARD)
 
@@ -116,6 +126,7 @@ def main():
 
 
 if __name__ == '__main__':
-    #app.run(debug=True, host='100.70.10.68')
+    app.run(debug=True, host='100.70.10.68', threaded=True)
+    signal.signal(signal.SIGINT, handler)
     main()
     camera.close()

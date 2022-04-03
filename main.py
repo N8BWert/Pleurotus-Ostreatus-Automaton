@@ -84,6 +84,9 @@ def main():
     global growth_coverage
     global camera
     global rawCapture
+    global idx
+    if idx > 5:
+        state = State.HARVEST
     if state == State.INIT:
         start_time = time.time()
         camera.capture(rawCapture, format="bgr")

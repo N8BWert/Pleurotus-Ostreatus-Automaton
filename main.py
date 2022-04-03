@@ -17,8 +17,6 @@ class State(Enum):
     HARVEST = auto()
 
 
-app = Flask(__name__)
-
 humidity = 65
 temperature = 10
 light_intensity = 5
@@ -31,9 +29,13 @@ lcd_display = ""
 
 start_time = 0
 
+print('precamera')
+
 camera = PiCamera()
 camera.resolution = (640, 480)
 rawCapture = PiRGBArray(camera, size=(640, 480))
+
+app = Flask(__name__)
 
 def handler(signum, frame):
     camera.close()
@@ -48,19 +50,6 @@ def index():
         light_intensity=light_intensity,
         current_image=current_image
     )
-
-def gen(camera):
-    """Video streaming generator function."""
-    while True:
-        frame = camera.get_frame()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-        
-@app.route('/video_feed')
-def video_feed():
-    """Video streaming route. Put this in the src attribute of an img tag."""
-    return Response(gen(Camera()),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
 
 def image_to_string(img):
     new_image_path = image_path + str(current_timestep) + '.png'
@@ -126,7 +115,8 @@ def main():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='100.70.10.68', threaded=True)
+    app.run(host='100.70.10.68', threaded=True)
+    print('main')
     signal.signal(signal.SIGINT, handler)
     main()
     camera.close()

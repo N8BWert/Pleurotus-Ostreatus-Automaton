@@ -54,7 +54,7 @@ def image_to_string(img):
     global current_image
     new_image_path = image_path + str(idx) + '.png'
     cv2.imwrite(new_image_path, img)
-    current_image = 'static/{}.png'.format(idx)
+    current_image = "./static/{}.png".format(idx)
 
 def update_lcd_display():
     global lcd_display
@@ -69,11 +69,15 @@ def checker_thread():
     
 @app.route('/1')
 def index():
+    global humidity
+    global temperature
+    global growth_coverage
+    global current_image
     return render_template(
         'index.html',
         humidity=humidity,
         temperature=temperature,
-        light_intensity=light_intensity,
+        growth_coverage=growth_coverage,
         current_image=current_image,
     )
     

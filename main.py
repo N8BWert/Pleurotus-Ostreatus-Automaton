@@ -69,11 +69,6 @@ def checker_thread():
     
 @app.route('/1')
 def index():
-    global humidity
-    global temperature
-    global growth_coverage
-    global current_image
-    print(current_image)
     return render_template(
         'index.html',
         humidity=humidity,

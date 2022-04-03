@@ -7,7 +7,7 @@ from cv import find_all_mushrooms, find_flowering_mushrooms, find_pink
 import time
 from picamera.array import PiRGBArray
 from picamera import PiCamera
-import Adafruit_DHT
+import dht11
 import signal
 import threading
 
@@ -41,8 +41,8 @@ rawCapture = PiRGBArray(camera, size=(640, 480))
 
 state = State.INIT
 
-humidity_sensor = Adafruit_DHT.DHT11
-humidity_sensor_pin = 4
+GPIO.setmode(GPIO.BOARD)
+sensor = dht11.DHT11(pin = 16)
 
 idx = 0
 
@@ -61,7 +61,7 @@ def image_to_string(img):
 
 def update_lcd_display():
     global lcd_display
-    lcd_display = "humidity: {}%\nTemperature: {}C\nGrowth Coverage: {}cd".format(humidity, temperature, growth_coverage)
+    lcd_display = "humidity: {}%\nTemperature: {}F\nGrowth Coverage: {}%".format(humidity, temperature, growth_coverage)
     
 def checker_thread():
     global idx
@@ -75,8 +75,8 @@ def index():
     return render_template(
         'index.html',
         humidity=humidity,
-        temperature=temperature,
-        growth_coverage=growth_coverage,
+        temperature=round(temperature, 1) ,
+        growth_coverage=round(growth_coverage * 100, 4),
         current_image=current_image,
     )
     
@@ -97,8 +97,9 @@ def main():
         camera.capture(rawCapture, format="bgr")
         image = rawCapture.array
         image_to_string(image)
-        GPIO.setmode(GPIO.BOARD)
-        humidity, temperature = Adafruit_DHT.read_retry(humidity_sensor, humidity_sensor_pin)
+        sensor_result = sensor.read()
+        humidity = sensor_result.humidity
+        temperature = sensor_result.temperature * 1.8 + 32
         print('humidity: ', humidity, ', temperature: ', temperature)
         update_lcd_display()
         growth_coverage = find_pink(image)
@@ -110,7 +111,9 @@ def main():
         image = rawCapture.array
         start_time = time.time()
         image_to_string(image)
-        humidity, temperature = Adafruit_DHT.read_retry(humidity_sensor, humidity_sensor_pin)
+        sensor_result = sensor.read()
+        humidity = sensor_result.humidity
+        temperature = sensor_result.temperature * 1.8 + 32
         print('humidity2: ', humidity, ', temperature: ', temperature)
         update_lcd_display()
         growth_coverage = find_pink(image)
@@ -126,7 +129,9 @@ def main():
         image = rawCapture.array
         start_time = time.time()
         image_to_string(image)
-        humidity, temperature = Adafruit_DHT.read_retry(humidity_sensor, humidity_sensor_pin)
+        sensor_result = sensor.read()
+        humidity = sensor_result.humidity
+        temperature = sensor_result.temperature * 1.8 + 32
         print('humidity3: ', humidity, ', temperature: ', temperature)
         GPIO.cleanup()
         update_lcd_display()
@@ -137,6 +142,7 @@ def main():
             state = State.HARVEST
 
     elif state == State.HARVEST:
+        GPIO.setmode(GPIO.BOARD)
 
         ControlPin = [7, 11, 13, 15]
 

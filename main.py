@@ -41,6 +41,9 @@ rawCapture = PiRGBArray(camera, size=(640, 480))
 
 state = State.INIT
 
+humidity_sensor = Adafruit_DHT.DHT11
+humidity_sensor_pin = 4
+
 idx = 0
 
 app = Flask(__name__)
@@ -95,7 +98,7 @@ def main():
         image = rawCapture.array
         image_to_string(image)
         GPIO.setmode(GPIO.BOARD)
-        humidity, temperature = Adafruit_DHT.read_retry(11, 8, 10)
+        humidity, temperature = Adafruit_DHT.read_retry(humidity_sensor, humidity_sensor_pin)
         print('humidity: ', humidity, ', temperature: ', temperature)
         update_lcd_display()
         growth_coverage = find_pink(image)
@@ -107,7 +110,7 @@ def main():
         image = rawCapture.array
         start_time = time.time()
         image_to_string(image)
-        humidity, temperature = Adafruit_DHT.read_retry(11, 8, 10)
+        humidity, temperature = Adafruit_DHT.read_retry(humidity_sensor, humidity_sensor_pin)
         print('humidity2: ', humidity, ', temperature: ', temperature)
         update_lcd_display()
         growth_coverage = find_pink(image)
@@ -123,7 +126,7 @@ def main():
         image = rawCapture.array
         start_time = time.time()
         image_to_string(image)
-        humidity, temperature = Adafruit_DHT.read_retry(11, 8, 10)
+        humidity, temperature = Adafruit_DHT.read_retry(humidity_sensor, humidity_sensor_pin)
         print('humidity3: ', humidity, ', temperature: ', temperature)
         GPIO.cleanup()
         update_lcd_display()

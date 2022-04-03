@@ -7,6 +7,7 @@ from cv import find_all_mushrooms, find_flowering_mushrooms, find_pink
 import time
 from picamera.array import PiRGBArray
 from picamera import PiCamera
+import Adafruit_DHT
 import signal
 import threading
 
@@ -86,6 +87,9 @@ def main():
         camera.capture(rawCapture, format="bgr")
         image = rawCapture.array
         current_image = image_to_string(image)
+        GPIO.setmode(GPIO.BOARD)
+        humidity, temperature = Adafruit_DHT.read_retry(11, 8, 10)
+        print('humidity: ', humidity, ', temperature: ', temperature)
         update_lcd_display()
         growth_coverage = find_pink(image)
         state = State.BUDDING
@@ -96,9 +100,8 @@ def main():
         image = rawCapture.array
         start_time = time.time()
         current_image = image_to_string(image)
-        GPIO.setmode(GPIO.BOARD)
-        humidity, temperature = Adafruit_DHT.read(11, 8)
-        GPIO.cleanup()
+        humidity, temperature = Adafruit_DHT.read_retry(11, 8, 10)
+        print('humidity2: ', humidity, ', temperature: ', temperature)
         update_lcd_display()
         growth_coverage = find_pink(image)
         rawCapture.truncate(0)
@@ -113,8 +116,8 @@ def main():
         image = rawCapture.array
         start_time = time.time()
         current_image = image_to_string(image)
-        GPIO.setmode(GPIO.BOARD)
-        humidity, temperature = Adafruit_DHT.read(11, 8)
+        humidity, temperature = Adafruit_DHT.read_retry(11, 8, 10)
+        print('humidity3: ', humidity, ', temperature: ', temperature)
         GPIO.cleanup()
         update_lcd_display()
         growth_coverage = find_pink(image)
@@ -124,7 +127,6 @@ def main():
             state = State.HARVEST
 
     elif state == State.HARVEST:
-        GPIO.setmode(GPIO.BOARD)
 
         ControlPin = [7, 11, 13, 15]
 

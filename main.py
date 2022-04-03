@@ -74,6 +74,7 @@ def index():
     )
     
 def main():
+    print('lets go')
     time.sleep(0.1)
     global state
     global current_image
@@ -88,17 +89,19 @@ def main():
         update_lcd_display()
         growth_coverage = find_pink(image)
         state = State.BUDDING
+        rawCapture.truncate(0)
 
     elif state == State.BUDDING:
         camera.capture(rawCapture, format="bgr")
         image = rawCapture.array
         start_time = time.time()
         current_image = image_to_string(image)
-        #GPIO.setmode(GPIO.BOARD)
-        #humidity, temperature = Adafruit_DHT.read_retry(11, 8, 1, 0)
-        #GPIO.cleanup()
+        GPIO.setmode(GPIO.BOARD)
+        humidity, temperature = Adafruit_DHT.read(11, 8)
+        GPIO.cleanup()
         update_lcd_display()
         growth_coverage = find_pink(image)
+        rawCapture.truncate(0)
 
         if find_flowering_mushrooms(image):
             state = State.HARVEST
@@ -110,11 +113,12 @@ def main():
         image = rawCapture.array
         start_time = time.time()
         current_image = image_to_string(image)
-        #GPIO.setmode(GPIO.BOARD)
-        #humidity, temperature = Adafruit_DHT.read_retry(11, 8, 1, 0)
-        #GPIO.cleanup()
+        GPIO.setmode(GPIO.BOARD)
+        humidity, temperature = Adafruit_DHT.read(11, 8)
+        GPIO.cleanup()
         update_lcd_display()
         growth_coverage = find_pink(image)
+        rawCapture.truncate(0)
 
         if find_flowering_mushrooms(image):
             state = State.HARVEST
@@ -153,6 +157,8 @@ def main():
 
 
 if __name__ == '__main__':
+    x = threading.Thread(target=checker_thread)
+    x.start()
     app.run(host='100.70.10.68', threaded=True)
     print('main')
     signal.signal(signal.SIGINT, handler)

@@ -29,6 +29,8 @@ lcd_display = ""
 
 start_time = 0
 
+time_left_before_harvest = 60
+
 print('precamera')
 
 camera = PiCamera()
@@ -51,6 +53,7 @@ def update_lcd_display():
     lcd_display = "humidity: {}%\nTemperature: {}C\nLight Intensity: {}cd".format(humidity, temperature, light_intensity)
 
 def main():
+    time_left_before_harvest -= (time.time() - start_time)
     start_time = time.time()
     time.sleep(0.1)
     state = State.INIT
@@ -119,6 +122,10 @@ def main():
 
         elif state == State.FINALIZING:
             break
+
+    if time_left_before_harvest < 0:
+        state = State.HARVEST
+        time_left_before_harvest = 10000
 
 
 if __name__ == '__main__':

@@ -81,7 +81,6 @@ def main():
     print('lets go')
     time.sleep(0.1)
     global state
-    global current_image
     global growth_coverage
     global camera
     global rawCapture
@@ -94,7 +93,7 @@ def main():
         start_time = time.time()
         camera.capture(rawCapture, format="bgr")
         image = rawCapture.array
-        current_image = image_to_string(image)
+        image_to_string(image)
         GPIO.setmode(GPIO.BOARD)
         humidity, temperature = Adafruit_DHT.read_retry(11, 8, 10)
         print('humidity: ', humidity, ', temperature: ', temperature)
@@ -107,7 +106,7 @@ def main():
         camera.capture(rawCapture, format="bgr")
         image = rawCapture.array
         start_time = time.time()
-        current_image = image_to_string(image)
+        image_to_string(image)
         humidity, temperature = Adafruit_DHT.read_retry(11, 8, 10)
         print('humidity2: ', humidity, ', temperature: ', temperature)
         update_lcd_display()
@@ -123,7 +122,7 @@ def main():
         camera.capture(rawCapture, format="bgr")
         image = rawCapture.array
         start_time = time.time()
-        current_image = image_to_string(image)
+        image_to_string(image)
         humidity, temperature = Adafruit_DHT.read_retry(11, 8, 10)
         print('humidity3: ', humidity, ', temperature: ', temperature)
         GPIO.cleanup()
@@ -164,8 +163,6 @@ def main():
 
     elif state == State.FINALIZING:
         pass
-
-    print(current_image)
 
 
 if __name__ == '__main__':

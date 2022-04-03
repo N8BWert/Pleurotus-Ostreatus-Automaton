@@ -54,7 +54,7 @@ def image_to_string(img):
     global current_image
     new_image_path = image_path + str(idx) + '.png'
     cv2.imwrite(new_image_path, img)
-    current_image = new_image_path
+    current_image = 'static/{}.png'.format(idx)
 
 def update_lcd_display():
     global lcd_display
@@ -74,7 +74,7 @@ def index():
         humidity=humidity,
         temperature=temperature,
         light_intensity=light_intensity,
-        growth_coverage=growth_coverage
+        current_image=current_image,
     )
     
 def main():

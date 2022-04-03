@@ -3,7 +3,7 @@ from time import sleep
 from enum import Enum, auto
 from flask import Flask, render_template, Response
 import cv2
-from cv import find_all_mushrooms, find_flowering_mushrooms
+from cv import find_all_mushrooms, find_flowering_mushrooms, find_pink
 import time
 from picamera.array import PiRGBArray
 from picamera import PiCamera
@@ -31,6 +31,8 @@ start_time = 0
 
 time_left_before_harvest = 60
 
+growth_coverage = 0
+
 print('precamera')
 
 camera = PiCamera()
@@ -50,7 +52,7 @@ def image_to_string(img):
     return new_image_path
 
 def update_lcd_display():
-    lcd_display = "humidity: {}%\nTemperature: {}C\nLight Intensity: {}cd".format(humidity, temperature, light_intensity)
+    lcd_display = "humidity: {}%\nTemperature: {}C\nGrowth Coverage: {}cd".format(humidity, temperature, growth_coverage)
 
 def main():
     time_left_before_harvest -= (time.time() - start_time)
@@ -58,6 +60,7 @@ def main():
     time.sleep(0.1)
     state = State.INIT
     global current_image
+    global growth_coverage
     while (True):
         if state == State.INIT:
             start_time = time.time()
@@ -65,6 +68,7 @@ def main():
             image = rawCapture.array
             current_image = image_to_string(image)
             update_lcd_display()
+            growth_coverage = find_pink(image)
             state = State.BUDDING
 
         elif state == State.BUDDING:
@@ -74,6 +78,7 @@ def main():
                 start_time = time.time()
                 current_image = image_to_string(image)
                 update_lcd_display()
+                growth_coverage = find_pink(image)
 
                 if find_flowering_mushrooms(image):
                     state = State.HARVEST
@@ -87,6 +92,7 @@ def main():
                 start_time = time.time()
                 current_image = image_to_string(image)
                 update_lcd_display()
+                growth_coverage = find_pink(image)
 
                 if find_flowering_mushrooms(image):
                     state = State.HARVEST
@@ -143,5 +149,5 @@ def index():
         humidity=humidity,
         temperature=temperature,
         light_intensity=light_intensity,
-        current_image=current_image
+        growth_coverage=growth_coverage
     )

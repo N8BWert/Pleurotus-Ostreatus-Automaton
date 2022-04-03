@@ -170,6 +170,8 @@ def main():
     elif state == State.FINALIZING:
         pass
 
+    print(current_image)
+
 
 if __name__ == '__main__':
     x = threading.Thread(target=checker_thread)

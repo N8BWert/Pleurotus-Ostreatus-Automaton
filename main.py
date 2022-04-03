@@ -1,21 +1,21 @@
 import RPi.GPIO as GPIO
 from time import sleep
 from enum import Enum, auto
-from flask import Flask, render_template
+#from flask import Flask, render_template
 import cv2
 from cv import find_all_mushrooms, find_flowering_mushrooms
 import time
-#from picamera.array import piRGBArray
-#from picamera import PiCamera
+from picamera.array import PiRGBArray
+from picamera import PiCamera
 
-class state(Enum):
+class State(Enum):
     INIT = auto()
     BUDDING = auto()
     FLOWERING = auto()
     HARVEST = auto()
 
 
-app = Flask(__name__)
+#app = Flask(__name__)
 
 humidity = 65
 temperature = 10
@@ -29,10 +29,9 @@ lcd_display = ""
 
 start_time = 0
 
-#camera = PiCamera()
-#camera.resolution = (640, 480)
-#camera.framerate = 1/60
-#rawCapture = PiRGBArray(camera)
+camera = PiCamera()
+camera.resolution = (640, 480)
+rawCapture = PiRGBArray(camera, size=(640, 480))
 
 @app.route('/1')
 def index():
@@ -44,43 +43,51 @@ def index():
         current_image=current_image
     )
 
+def gen(camera):
+    while True:
+        frame = camera.get_frame()
+        yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+        
+@app.route('/video_1')
+def video_feed():
+    return Response(gen(camera()), mimetype='multipart/x-mixed-replace; boundary=frame')
+
 def image_to_string(img):
     new_image_path = image_path + str(current_timestep) + '.png'
     cv2.imwrite(new_image_path, img)
     current_image = new_image_path
 
 def update_lcd_display():
-    lcd_display = format("humidity: {}%\nTemperature: {}C\nLight Intensity: {}cd", humidity, temperature, light_intensity)
+    lcd_display = "humidity: {}%\nTemperature: {}C\nLight Intensity: {}cd".format(humidity, temperature, light_intensity)
 
 def main():
     time.sleep(0.1)
-    state = state.INIT
+    state = State.INIT
     while (True):
-        if state == state.INIT:
+        if state == State.INIT:
             start_time = time.time()
-            cv2.im
 
-        elif state == state.BUDDING:
+        elif state == State.BUDDING:
             pass
 
-        elif state == state.FLOWERING:
+        elif state == State.FLOWERING:
             pass
 
-        elif state == state.HARVEST:
+        elif state == State.HARVEST:
             pass
 
         if (time.time() - start_time > 60):
-            #camera.capture(rawCapture, format="bgr")
-            #image = rawCapture.array
+            camera.capture(rawCapture, format="bgr")
+            image = rawCapture.array
             start_time = time.time()
-            pass
+            image_to_string(image)
+            update_lcd_display()
 
-        #if find_all_mushrooms(image):
-            #state = State.FLOWERING
-        #elif find_flowering_mushrooms(image):
-            #state = State.HARVEST
-        #image_to_string(image)
-        update_lcd_display()
+            if find_all_mushrooms(image):
+                state = State.FLOWERING
+            elif find_flowering_mushrooms(image):
+                state = State.HARVEST
+                
         GPIO.setmode(GPIO.BOARD)
 
         ControlPin = [7, 11, 13, 15]
@@ -109,5 +116,6 @@ def main():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='127.17.0.1')
+    #app.run(debug=True, host='100.70.10.68')
     main()
+    camera.close()

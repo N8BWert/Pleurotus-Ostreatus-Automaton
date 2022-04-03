@@ -40,6 +40,8 @@ rawCapture = PiRGBArray(camera, size=(640, 480))
 
 state = State.INIT
 
+idx = 0
+
 app = Flask(__name__)
 
 def handler(signum, frame):
@@ -47,17 +49,18 @@ def handler(signum, frame):
     exit(1)
 
 def image_to_string(img):
-    global current_timestep
-    new_image_path = image_path + str(current_timestep) + '.png'
+    global idx
+    global current_image
+    new_image_path = image_path + str(idx) + '.png'
     cv2.imwrite(new_image_path, img)
-    current_timestep += 1
-    return new_image_path
+    current_image = new_image_path
 
 def update_lcd_display():
+    global lcd_display
     lcd_display = "humidity: {}%\nTemperature: {}C\nGrowth Coverage: {}cd".format(humidity, temperature, growth_coverage)
     
 def checker_thread():
-    idx = 0
+    global idx
     while True:
         main()
         time.sleep(60)
